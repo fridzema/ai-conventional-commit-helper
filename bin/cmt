@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.1.0"
+VERSION="0.1.1"
 MODEL="haiku"
 SKIP_ADD=false
 
@@ -109,7 +109,7 @@ if [[ -t 1 ]]; then
   spinner_pid=$!
 fi
 
-msg="$(claude -p --model "$MODEL" --output-format text --no-input-history \
+msg="$(claude -p --model "$MODEL" --effort low --output-format text --no-session-persistence \
   "Write a conventional commit message for this diff.
 Format: <type>(<optional scope>): <description>
 Types: feat fix refactor docs style test chore perf ci build
