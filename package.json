@@ -1,0 +1,29 @@
+{
+  "name": "@cmt/cli",
+  "version": "0.1.0",
+  "description": "AI-powered git commit messages. Fast.",
+  "bin": {
+    "cmt": "./bin/cmt"
+  },
+  "files": [
+    "bin/cmt",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "claude",
+    "conventional-commits"
+  ],
+  "license": "MIT",
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robertfridzema/cmt.git"
+  }
+}
