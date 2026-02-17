@@ -8,14 +8,14 @@ Generates [conventional commit](https://www.conventionalcommits.org/) messages f
 
 ```sh
 # Run directly
-npx @cmt/cli        # npm
-yarn dlx @cmt/cli   # yarn
-bunx @cmt/cli       # bun
+npx @fridzema/cmt        # npm
+yarn dlx @fridzema/cmt   # yarn
+bunx @fridzema/cmt       # bun
 
 # Install globally
-npm i -g @cmt/cli
-yarn global add @cmt/cli
-bun add -g @cmt/cli
+npm i -g @fridzema/cmt
+yarn global add @fridzema/cmt
+bun add -g @fridzema/cmt
 ```
 
 ## Prerequisites

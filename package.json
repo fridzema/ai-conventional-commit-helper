@@ -1,9 +1,9 @@
 {
-  "name": "@cmt/cli",
+  "name": "@fridzema/cmt",
   "version": "0.1.0",
   "description": "AI-powered git commit messages. Fast.",
   "bin": {
-    "cmt": "./bin/cmt"
+    "cmt": "bin/cmt"
   },
   "files": [
     "bin/cmt",
@@ -18,12 +18,15 @@
     "conventional-commits"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "os": [
     "darwin",
     "linux"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/robertfridzema/cmt.git"
+    "url": "git+https://github.com/fridzema/ai-conventional-commit-helper.git"
   }
 }
