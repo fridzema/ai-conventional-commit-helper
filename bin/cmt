@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="0.1.1"
+VERSION="0.2.0"
 MODEL="haiku"
 SKIP_ADD=false
+DIRECT=false
 
 usage() {
   cat <<EOF
@@ -12,13 +13,14 @@ cmt - AI-powered git commit messages. Fast.
 Usage: cmt [options] [message]
 
 Options:
+  -d, --direct          Skip confirmation, commit immediately
   -m, --model <model>   Claude model to use (default: haiku)
   --no-add              Skip automatic 'git add -A'
   -v, --version         Show version
   -h, --help            Show help
 
 If [message] is provided, commits directly with that message.
-Otherwise, generates a message from the staged diff.
+Otherwise, generates a message and asks for confirmation.
 EOF
 }
 
@@ -29,6 +31,10 @@ while [[ $# -gt 0 ]]; do
     -m|--model)
       MODEL="${2:?Missing model name}"
       shift 2
+      ;;
+    -d|--direct)
+      DIRECT=true
+      shift
       ;;
     --no-add)
       SKIP_ADD=true
@@ -103,14 +109,14 @@ trap cleanup INT
 # Build context: stat summary + truncated diff
 diff_input="$(git diff --cached --stat --no-color && echo '---' && git diff --cached --no-color --unified=2 | head -c 40000)"
 
-# Generate commit message
-if [[ -t 1 ]]; then
-  spinner & disown
-  spinner_pid=$!
-fi
+generate_message() {
+  if [[ -t 1 ]]; then
+    spinner & disown
+    spinner_pid=$!
+  fi
 
-msg="$(claude -p --model "$MODEL" --effort low --output-format text --no-session-persistence \
-  "Write a conventional commit message for this diff.
+  msg="$(claude -p --model "$MODEL" --effort low --output-format text --no-session-persistence \
+    "Write a conventional commit message for this diff.
 Format: <type>(<optional scope>): <description>
 Types: feat fix refactor docs style test chore perf ci build
 Rules:
@@ -119,21 +125,67 @@ Rules:
 - No period at end
 - Output ONLY the message, nothing else" <<< "$diff_input")"
 
-# Stop spinner
-trap - INT
-if [[ -n "$spinner_pid" ]]; then
-  kill "$spinner_pid" 2>/dev/null || true
-  wait "$spinner_pid" 2>/dev/null || true
-  printf "\r\033[K"
-fi
+  trap - INT
+  if [[ -n "$spinner_pid" ]]; then
+    kill "$spinner_pid" 2>/dev/null || true
+    wait "$spinner_pid" 2>/dev/null || true
+    printf "\r\033[K"
+  fi
 
-msg="${msg//$'\n'/}"
+  msg="${msg//$'\n'/}"
+}
+
+# Generate initial message
+generate_message
 
 if [[ -z "$msg" ]]; then
   echo "Failed to generate commit message"
   exit 1
 fi
 
-# Show message and commit
-echo -e "\033[32m✓\033[0m $msg"
-git commit -m "$msg"
+# Direct mode: commit immediately
+if [[ "$DIRECT" == true ]]; then
+  echo -e "\033[32m✓\033[0m $msg"
+  git commit -m "$msg"
+  exit 0
+fi
+
+# Interactive confirmation loop
+while true; do
+  echo -e "\n\033[32m✓\033[0m $msg\n"
+  printf "  \033[36m[A]ccept\033[0m  \033[33m[E]dit\033[0m  \033[35m[R]egenerate\033[0m  \033[31m[Q]uit\033[0m  "
+  read -r -n1 choice
+  echo
+
+  case "${choice,,}" in
+    a|"")
+      git commit -m "$msg"
+      exit 0
+      ;;
+    e)
+      printf "\n  Enter commit message: "
+      read -r edited_msg
+      if [[ -n "$edited_msg" ]]; then
+        msg="$edited_msg"
+        git commit -m "$msg"
+        exit 0
+      else
+        echo "  Empty message, try again."
+      fi
+      ;;
+    r)
+      generate_message
+      if [[ -z "$msg" ]]; then
+        echo "Failed to generate commit message"
+        exit 1
+      fi
+      ;;
+    q)
+      echo "  Aborted."
+      exit 1
+      ;;
+    *)
+      echo "  Invalid choice."
+      ;;
+  esac
+done

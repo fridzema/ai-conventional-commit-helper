@@ -26,8 +26,11 @@ bun add -g @fridzema/cmt
 ## Usage
 
 ```sh
-# Generate a commit message from your changes
+# Generate a commit message (interactive)
 cmt
+
+# Skip confirmation, commit immediately
+cmt --direct
 
 # Commit with a specific message
 cmt "feat: add user auth"
@@ -42,6 +45,7 @@ cmt --no-add
 ## Options
 
 ```
+-d, --direct          Skip confirmation, commit immediately
 -m, --model <model>   Claude model to use (default: haiku)
 --no-add              Skip automatic 'git add -A'
 -v, --version         Show version
@@ -53,7 +57,12 @@ cmt --no-add
 1. Stages all changes (`git add -A`, unless `--no-add`)
 2. Sends the diff to Claude
 3. Gets back a conventional commit message
-4. Commits with that message
+4. Shows the message for confirmation:
+   - **Accept** — commit as-is
+   - **Edit** — type your own message
+   - **Regenerate** — ask Claude for a new message
+   - **Quit** — abort without committing
+5. Use `--direct` to skip confirmation and commit immediately
 
 ## License
 
